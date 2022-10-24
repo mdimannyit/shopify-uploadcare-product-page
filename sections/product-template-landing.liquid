@@ -1,0 +1,121 @@
+{%- assign current_variant = product.selected_or_first_available_variant -%}
+{%- assign current_variant_sale = false -%}
+{% if current_variant.compare_at_price > current_variant.price %}
+    {%- assign current_variant_sale = true -%}
+{% endif %}
+{% assign featured_media = current_variant.featured_media | default: product.featured_media %}
+
+<div class="product_checkout-right" data-section-id="{{ section.id }}" data-section-type="product-template"
+     data-variant-id="{{ current_variant.id }}" itemscope itemtype="http://schema.org/Product">
+    <meta itemprop="name" content="{{ product.title }}">
+    <meta itemprop="url" content="{{ shop.url }}{{ product.url }}">
+    <meta itemprop="image" content="{{ featured_media | img_url: 'grande' }}">
+
+
+    {% unless template.handle contains 'product' %}
+        {% if section.settings.show_vendor %}
+            <span class="product__vendor text-small text-center"
+                  itemprop="brand">{{ product.vendor }}</span>
+        {% endif %}
+        <p class="product_checkout-title" itemprop="name">{{ product.title }}</p>
+
+        <p class="product_checkout-price{% if current_variant_sale %} product__price--sale{% endif %}"
+           data-product-price aria-live="polite">
+
+            <span class="product__sale-price-label visually-hidden">{{ 'products.product.sale_price' | t }}</span>
+            <span class="product__regular-price-label visually-hidden">{{ 'products.product.price' | t }}</span>
+            <span class="product__current-price"
+                  data-regular-price>{{ current_variant.price | money }}</span>
+
+            <span class="product__compare-price-label visually-hidden">{{ 'products.product.regular_price' | t }}</span>
+            <s class="product__compare-price"
+               data-compare-price>{{ current_variant.compare_at_price | money }}</s>
+
+            {% include 'product-unit-price', variant: current_variant %}
+        </p>
+        {% if template.handle contains 'product' %}
+            {%- if shop.taxes_included or shop.shipping_policy.body != blank -%}
+                <div class="product__policies rte">
+                    {%- if shop.taxes_included -%}
+                        {{ 'products.product.include_taxes' | t }}
+                    {%- endif -%}
+                    {%- if shop.shipping_policy.body != blank -%}
+                        {{ 'products.product.shipping_policy_html' | t: link: shop.shipping_policy.url }}
+                    {%- endif -%}
+                </div>
+            {%- endif -%}
+        {% endif %}
+
+        {% if template.handle contains 'product' %}
+            <div class="product__description rte" itemprop="description" class="rte">
+                {{ product.description }}
+            </div>
+        {% endif %}
+        <div class="product-form-container" itemprop="offers" itemscope
+             itemtype="http://schema.org/Offer">
+            <div class="product__form-wrapper">
+                <meta itemprop="price" content="{{ current_variant.price | divided_by: 100.00 }}">
+                <meta itemprop="priceCurrency" content="{{ cart.currency.iso_code }}">
+                <link itemprop="availability"
+                      href="http://schema.org/{% if current_variant.available %}InStock{% else %}OutOfStock{% endif %}">
+                {% if product.tags contains "uploadcare" %}
+                    <div class="uploadcare">
+                        <p id="authenticate-btn" class="authenticate-btn" style="">{{ 'products.product.upload' | t }}</p>
+                    </div>
+                {% endif %}
+                {%- if product.tags contains "brandlist" -%}
+                    {% render 'product-form-options' %}
+                {%- else -%}
+                    {% render 'product-form-upload' %}
+                {%- endif -%}
+            </div>
+        </div>
+        {% if product.tags contains "uploadcare" %}
+            {% render 'uploadcare-fields' %}
+        {% endif %}
+    {% endunless %}
+
+    <script type="application/json" data-product-json>
+    {{ product | json }}
+    </script>
+
+    <script type="application/json" data-model-json="{{ section.id }}">
+    {{ product.media | where: 'media_type', 'model' | json }}
+    </script>
+</div>
+{% schema %}
+{
+  "name": {
+    "en": "Product forms"
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_variant_labels",
+      "label": {
+        "en": "Show variant labels"
+      },
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": {
+        "en": "Show product vendor"
+      },
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_payment_button",
+      "label": {
+        "en": "Show dynamic checkout button"
+      },
+      "info": {
+        "en": "Each customer will see their preferred payment method from those available on your store, such as PayPal or Apple Pay. [Learn more](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)"
+      },
+      "default": true
+    }
+  ]
+}
+{% endschema %}

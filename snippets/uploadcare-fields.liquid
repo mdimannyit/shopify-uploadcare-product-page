@@ -1,0 +1,113 @@
+{% if template contains 'article' %}
+    {%- assign product = all_products[article.metafields.custom.product] -%}
+{% elsif template contains 'page' %}
+    {%- assign product = all_products[page.metafields.custom.product] -%}
+{% else %}
+    {% assign items = product.metafields.custom.form_settings.value %}
+{% endif %}
+<div id="product-uploads" class="popup-overlay hidden">
+    <div class="popup-container transparent">
+        <div class="container-popup-header">
+            <a class="popup-btn__close"></a>
+        </div>
+        <div class="popup-sections">
+            <div class="popup-sections__row">
+                <div class="form-block step-first">
+                    <div class="form-block__title">Step 1</div>
+                    <div class="form-block__description">Choose your item</div>
+                    <div class="form-block__content">
+                        <div class="scroll-container upload-options">
+                            {% for item in items %}
+                                <div class="radio-option-type">
+                                    <label class="radio radio-wrap" for="{{ item.name }}">
+                                        {{ item.title }}
+                                        <input id="{{ item.name }}" class="radio-option-input" type="radio" name="types"
+                                                {% if forloop.index == 1 %} checked="true" {% endif %} >
+                                        <div class="checkmark"></div>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-block block-tips">
+                    <div class="form-block__title">Tips on how to speed up your authentication</div>
+                    <div class="form-block__content">
+                        <div class="tips">
+                            {% for item in items %}
+                                <div class="tip-section {% if forloop.index == 1 %} tip-active {% endif %}"
+                                     id="tip-{{ item.name }}">
+                                    {% for tip in item.tips limit: 3 %}
+                                        <div class="tip-section__content">
+                                            <div class="tip-section__text">
+                                                {{ tip }}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-sections__row">
+                <div class="form-block form-block-tabs">
+                    <div class="form-block__title">Step 2</div>
+                    <div class="form-block__description">Upload the photos of your <span id="collection-title"
+                                                                                         class="form-block__item-title">item</span>
+                    </div>
+                    <div class="tabs">
+                        {% for tab in items %}
+                            <div class="tab-section {% if forloop.index == 1 %} tab-active {% endif %}"
+                                 id="tab-{{ tab.name }}">
+                                {% assign types = tab.types %}
+                                {% for type in types %}
+                                    <div id="{{ tab.name }}_{{ type.name }}"
+                                         class="tab-section__content tab-{{ type.name }} {% if type.required == "true" %} item-required {% endif %}">
+                                        <div id="counter-tab-{{ tab.name }}_{{ type.name }}"
+                                             class="tab-section__counter"></div>
+                                        <div class="tab-section__image-container">
+                                            <div class="tab-section__image" {% if type.image.size > 0 %} style="background-image: url('{{ type.image | asset_url }}')" {% endif %}>
+                                            </div>
+                                            <div class="tab-section__image-success" {% if type.success_image.size > 0 %} style="background-image: url('{{ type.success_image | asset_url }}')" {% endif %}></div>
+                                            <div class="loader-line">
+                                                <i class="loader spin"></i>
+                                            </div>
+                                        </div>
+                                        <div class="tab-section__title">
+                                            {{ type.title }}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <p class="cart-attribute__field uploader-dawn hidden">
+                <input
+                        id="uploader"
+                        type="hidden"
+                        data-images-only="true"
+                        data-multiple="true"
+                        role="uploadcare-uploader"
+                        name="properties[Upload]"
+                />
+            </p>
+            <div class="popup-sections__row">
+                <div class="buttton-wrap">
+                    <div id="upload-messages" class="upload-messages"></div>
+                    <button id="upload_submit" class="btn main-btn disabled" name="" style="max-width: 250px"
+                    >
+                  <span>
+                      Submit
+                  </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="hidden" id="product-data">{{ product.id }}</div>
+<script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
+{{ "uploadcare-form.js" | asset_url | script_tag }}
